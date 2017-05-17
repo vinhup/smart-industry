@@ -38,16 +38,16 @@
 <link rel="import" href="../bower_components/paper-radio-button/paper-radio-button.html">
 <link rel="import" href="../bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="../bower_components/paper-styles/paper-styles.html">
 <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
-<link rel="import" href="../bower_components/paper-time-input/paper-time-input.html">
 <link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
 <!-- neon modules - used for animation -->
 <link rel="import" href="../bower_components/neon-animation/neon-animation.html">
 <!-- 3rd party modules -->
-<link rel="import" href="../bower_components/platinum-sw/platinum-sw-elements.html">
+<!-- <link rel="import" href="../bower_components/platinum-sw/platinum-sw-elements.html"> -->
 <link rel="import" href="../bower_components/polymer-redux/polymer-redux.html">
 <link rel="import" href="../bower_components/polymerfire/polymerfire.html">
 <link rel="import" href="../bower_components/material-progress/material-progress.html">
@@ -156,7 +156,7 @@
         border-bottom: 1px solid #d6d6d6;
       }
     </style>
-    <platinum-sw-register 
+  <!--  <platinum-sw-register 
                       auto-register 
                       skip-waiting 
                       clients-claim 
@@ -164,7 +164,7 @@
                       on-service-worker-error="handleSWError"
                       on-service-worker-installed="handleSWInstalled"
                       href="../sw-import.js">
-    <platinum-sw-cache default-cache-strategy="networkFirst"></platinum-sw-cache></platinum-sw-register>
+    <platinum-sw-cache default-cache-strategy="networkFirst"></platinum-sw-cache></platinum-sw-register> -->
     <app-location route="{{route}}"></app-location>
     <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
     <firebase-app name="smart-mes" auth-domain="smart-mes.firebaseapp.com" database-url="https://smart-mes.firebaseio.com" api-key="AIzaSyAPkuFs7jRmku7qiNGUkLk0nmtQCy0s3M0"
@@ -240,7 +240,6 @@
           <view-setup name="setup" route="{{subroute}}"></view-setup>
           <view-planning name="planning" route="{{subroute}}"></view-planning>
           <view-tracking name="tracking" route="{{subroute}}"></view-tracking>
-          <view-controlling name="controlling" route="{{subroute}}"></view-controlling>
           <view-settings name="settings" route="{{subroute}}"></view-settings>
           <view-404 name="404" route="{{subroute}}"></view-404>         
         </iron-pages>
@@ -249,18 +248,20 @@
     <iron-media-query query="min-width: 600px" query-matches="{{wideLayout}}"></iron-media-query>
   </template>
   <script>
-    Polymer({
-      is: 'view-index',
-      properties: {
-        notification: {
+     class ViewIndex extends Polymer.Element {
+      static get is() { return 'view-index'; }
+
+      static get properties() {
+        return {
+          page: {
+            type: String,
+            reflectToAttribute: true,
+            observer: '_pageChanged',
+          },
+          notification: {
           type: Boolean
         },
-        page: {
-          type: String,
-          reflectToAttribute: true,
-          observer: '_pageChanged'
-        },
-        user: {
+          user: {
           type: Object
         },
         statusKnown: {
@@ -277,70 +278,89 @@
           value: false,
           observer: '_onLayoutChange',
         },
-      },
+          rootPattern: String,
+          routeData: Object,
+          subroute: String,
+        };
+      }
 
-      observers: [
-        '_routePageChanged(routeData.page)',
-      ],
+      static get observers() {
+        return [
+          '_routePageChanged(routeData.page)',
+        ];
+      }
 
-      listeners: {
-        'dom-change': '_domChange',
-        'show-invalid-url-warning': '_showPage404'
-      },
+     /* static get listeners() {
+        return [
+         'dom-change': '_domChange',
+         'show-invalid-url-warning': '_showPage404'
+        ];
+      } */
 
-      behaviors: [
+      static get behaviors() {
+        return [
         Polymer.AppLocalizeBehavior,
         Polymer.AppNetworkStatusBehavior,
         Polymer.AppLanguageBehavior
-      ],
+        ];
+      }
+
+      constructor() {
+        super();
+
+        // Get root pattern for app-route, for more info about `rootPath` see:
+        // https://www.polymer-project.org/2.0/docs/upgrade#urls-in-templates
+        this.rootPattern = (new URL(this.rootPath)).pathname;
+      }
 
       created() {
-        window.performance && performance.mark && performance.mark('view-index.created');
         // Custom elements polyfill safe way to indicate an element has been upgraded.
-        this.removeAttribute('unresolved');
-      },
+        // this.removeAttribute('unresolved');
+      }
 
       ready() {
-        this.async(() => {
-          if (!this.route.path) this.set('routeData.page', 'dashboard');
-        });
+
+         // if (!this.route.path) this.set('routeData.page', 'dashboard');
+       
         // listen for online/offline
-        Polymer.RenderStatus.afterNextRender(this, function() {
+      /*  Polymer.RenderStatus.afterNextRender(this, function() {
           this.listen(window, 'online', '_notifyNetworkStatus');
           this.listen(window, 'offline', '_notifyNetworkStatus');
-        });
-      },
+        }); */
+      }
 
       // On create load localization language data
       attached() {
         this.loadResources(this.resolveUrl('../data/locales.json'));
-      },
+      }
 
       _onLayoutChange(wide) {
         const drawer = this.$.drawer;
         if (wide && drawer.opened) drawer.opened = false;
-      },
+      }
 
-      _routePageChanged(page) {
-          this.async(()=> {
-        if (page === undefined) return 'dashboard';
-        if (!this.$.drawer.persistent)  this.$.drawer.close();
+      _routePageChanged(page) {    
+        if (page === undefined) {
+          return;
+        }
           this.page = page || 'dashboard';
-          });
-      },
+        if (!this.$.drawer.persistent) { 
+          this.$.drawer.close(); 
+        }
+      }
 
       _pageChanged(page){
        let resolvedPageUrl = this.resolveUrl('view-' + page + '.html');
-       this.importHref(
+       Polymer.importHref(
        resolvedPageUrl, 
        null, 
        this._showPage404.bind(this), 
        true);
-      },
+      }
 
       _showPage404() {
         this.page = '404';
-      },
+      }
 
       // Signin Action
       _login() {
@@ -355,7 +375,7 @@
           console.info("%cAuthenticate Failed: " + error.code, "color: crimson;");
           alert("Authenticate Failed: " + error.message + " Please try again.");
         });
-      },
+      }
 
       // Signout Action
       _logout() {
@@ -369,13 +389,13 @@
           console.info("%cAuthenticate Failed: " + error.code, "color: crimson;");
           alert("Authenticate Failed: " + error.message + " Please try again.");
         });
-      },
+      }
 
       // Redirect to Register page
       _register() {
         this.page = 'register';
         this.set('route.path', 'register');
-      },
+      }
 /*
 THIS CODE IS FOR REGISTER USING EMAIL AND PASSWORD
 
@@ -417,38 +437,24 @@ THIS CODE IS FOR REGISTER USING EMAIL AND PASSWORD
               'You are offline' : 'You are online';      
           //alert("No internet connection");
         }
-      }, 
-
-      // This is for performance logging only.
-      _domChange(e) {
-        if (window.performance && performance.mark && !this.__loggedDomChange) {
-          var target = Polymer.dom(e).rootTarget;
-          if (target.domHost.is.match(this.page)) {
-            this.__loggedDomChange = true;
-            performance.mark(target.domHost.is + '.domChange');
-          }
-        }
-      },
+      }
 
       // Handle Authen Error
       handleError(e) {
         console.info("%cAuthenticate Error: " + e.message, "color: crimson;");
-      },
+      }
 
       // Handle SW Error
       handleSWError(e) {
         console.info("%cService Worker Error", "color: crimson;");
-      },
+      }
       
       // Handle SW Installed
       handleSWInstalled(e) {
         console.info("%cService Worker Installed", "color: green;");
-      },
-      
-     });
-    // performance logging
-    window.performance && performance.mark && performance.mark('view-index - before register');
-  //  window.customerElements.define(ViewIndex.is, ViewIndex);
+      }
+     }
+  window.customElements.define(ViewIndex.is, ViewIndex);
   </script>
   <!-- Library for parallel computations with GPGPU -->
   <script src="../bower_components/turbojs/turbo.js"></script>

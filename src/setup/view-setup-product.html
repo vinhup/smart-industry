@@ -478,7 +478,9 @@
       },
 
       removeProduct: function (e) {
-        this.$.productQuery.ref.child(e.target.id).remove();
+        if (confirm("Delete tihs product ?") == true) {
+           this.$.productQuery.ref.child(e.target.id).remove();
+        } else {}
       },
 
       saveProduct: function (e) {
