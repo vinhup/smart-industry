@@ -47,7 +47,7 @@
 <!-- neon modules - used for animation -->
 <link rel="import" href="../bower_components/neon-animation/neon-animation.html">
 <!-- 3rd party modules -->
-<!-- <link rel="import" href="../bower_components/platinum-sw/platinum-sw-elements.html"> -->
+<link rel="import" href="../bower_components/platinum-sw/platinum-sw-elements.html"> 
 <link rel="import" href="../bower_components/polymer-redux/polymer-redux.html">
 <link rel="import" href="../bower_components/polymerfire/polymerfire.html">
 <link rel="import" href="../bower_components/material-progress/material-progress.html">
@@ -156,15 +156,18 @@
         border-bottom: 1px solid #d6d6d6;
       }
     </style>
-  <!--  <platinum-sw-register 
-                      auto-register 
-                      skip-waiting 
-                      clients-claim 
-                      reload-on-install 
-                      on-service-worker-error="handleSWError"
-                      on-service-worker-installed="handleSWInstalled"
-                      href="../sw-import.js">
-    <platinum-sw-cache default-cache-strategy="networkFirst"></platinum-sw-cache></platinum-sw-register> -->
+     <platinum-sw-register
+      auto-register
+      skip-waiting
+      clients-claim
+      reload-on-install
+      on-service-worker-error="handleSWError"
+      on-service-worker-installed="handleSWInstalled"
+      href="../sw-import.js">
+      <platinum-sw-cache
+        default-cache-strategy="networkFirst">
+      </platinum-sw-cache>
+    </platinum-sw-register>
     <app-location route="{{route}}"></app-location>
     <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
     <firebase-app name="smart-mes" auth-domain="smart-mes.firebaseapp.com" database-url="https://smart-mes.firebaseio.com" api-key="AIzaSyAPkuFs7jRmku7qiNGUkLk0nmtQCy0s3M0"
